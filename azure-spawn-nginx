@@ -1,4 +1,6 @@
 ## Firing up a VM in azure CLI, in the named resource group learn-..., with the name my-vm, a UbuntuLTS image, and ssh-keys for the user azureuser.
+#We will then install nginx, modify the network security group to allow external traffic on TCP 80, and verify that connectivity was successful.
+#Look ma, my first azure VM!
 
 az vm create \
   --resource-group learn-51d6f2f3-7790-4e86-bca2-8604bfd55a23 \
@@ -18,4 +20,61 @@ az vm create \
   --settings '{"fileUris":["https://raw.githubusercontent.com/MicrosoftDocs/mslearn-welcome-to-azure/master/configure-nginx.sh"]}' \
   --protected-settings '{"commandToExecute": "./configure-nginx.sh"}'
   
-  ## That it.
+ ## And now making it publicly accessible. Call AZ command to list IPs of my machines and store the IP in variable IPADDRESS.
+ 
+IPADDRESS="$(az vm list-ip-addresses \
+  --resource-group learn-c794d7f8-b976-42c4-a827-a4f19dada426 \
+  --name my-vm \
+  --query "[].virtualMachine.network.publicIpAddresses[*].ipAddress" \
+  --output tsv)"  
+ 
+ # Now grab the network security group name that the vm we just created belongs to. Since the VM is not currently provisioned in the NSG for external access, we will need to allow it ot make it world-reacahble.
+ 
+ az network nsg list \
+  --resource-group learn-c794d7f8-b976-42c4-a827-a4f19dada426 \
+  --query '[].name' \
+  --output tsv
+  
+  #Now that we know the name of our NSG (my-vmNSG), let's take a look at its security rules:
+  az network nsg rule list \
+  --resource-group learn-c794d7f8-b976-42c4-a827-a4f19dada426 \
+  --nsg-name my-vmNSG
+  
+# The above command spits out a lot of JSON data. let's spit it out in a formatted t able to make our life easier.
+az network nsg rule list \
+  --resource-group learn-c794d7f8-b976-42c4-a827-a4f19dada426 \
+  --nsg-name my-vmNSG \
+  --query '[].{Name:name, Priority:priority, Port:destinationPortRange, Access:access}' \
+  --output table
+## We can see that the output is:
+#Name              Priority    Port    Access
+#----------------  ----------  ------  --------
+#default-allow-ssh  1000        22      Allow
+# -> you know what this means you smart cookie.
+# By default, azure vm's allow 22 in so you can use ssh to admin your new boxes.
+
+# Ok so let's provision our NSG to allow web connections in on :80, which will open our nginx site to traffic.
+az network nsg rule create \
+  --resource-group learn-c794d7f8-b976-42c4-a827-a4f19dada426 \
+  --nsg-name my-vmNSG \
+  --name allow-http \
+  --protocol tcp \
+  --priority 100 \
+  --destination-port-range 80 \
+  --access Allow
+  
+  #Now let's verify our new  rule list to make sure that what we just added is in the NSG rule set.
+  az network nsg rule list \
+  --resource-group learn-c794d7f8-b976-42c4-a827-a4f19dada426 \
+  --nsg-name my-vmNSG \
+  --query '[].{Name:name, Priority:priority, Port:destinationPortRange, Access:access}' \
+  --output table
+  
+ ## TA da!
+# Name              Priority    Port    Access
+#-----------------  ----------  ------  --------
+#default-allow-ssh  1000        22      Allow
+#allow-http        100        80      Allow
+
+# Browse to your site in your browser, or have curl query it:
+curl --connect-timeout 5 http://$IPADDRESS
