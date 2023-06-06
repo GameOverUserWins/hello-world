@@ -1,4 +1,2 @@
 # hello-world
-learning to use github
-
-This is the first version of the readme that will be pulled into the master branch.
+Welcome to RiceRobot's e-learning portfolio and repo. Follow me for e-learning, home lab configs, and studies on a range of topics.
