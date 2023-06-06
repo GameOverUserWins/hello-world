@@ -1,0 +1,21 @@
+## Firing up a VM in azure CLI, in the named resource group learn-..., with the name my-vm, a UbuntuLTS image, and ssh-keys for the user azureuser.
+
+az vm create \
+  --resource-group learn-51d6f2f3-7790-4e86-bca2-8604bfd55a23 \
+  --name my-vm \
+  --image UbuntuLTS \
+  --admin-username azureuser \
+  --generate-ssh-keys
+  
+  # And running the extension set, which will download a script from GitHub to install nginx, configure the main page.
+  
+  az vm extension set \
+  --resource-group learn-51d6f2f3-7790-4e86-bca2-8604bfd55a23 \
+  --vm-name my-vm \
+  --name customScript \
+  --publisher Microsoft.Azure.Extensions \
+  --version 2.1 \
+  --settings '{"fileUris":["https://raw.githubusercontent.com/MicrosoftDocs/mslearn-welcome-to-azure/master/configure-nginx.sh"]}' \
+  --protected-settings '{"commandToExecute": "./configure-nginx.sh"}'
+  
+  ## That it.
