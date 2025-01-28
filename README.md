@@ -1,6 +1,6 @@
 # RiceRobot's Jellyfin Home Media Server 
 UPDATE 30 Aug 2023: RiceRobot is back baby. A short hiatus and sabbatical from the world of IT to pick up some much needed edumacation, and now it's time to put the cyber hat back on.
-So let's get some brainstorming on the planned build. AKA Documentation, let's goooo.
+So let's get some brainstorming on the planned build. AKA Documentation.
 
 Planned Build: Network Streaming Home Media Server
 Requirements:
